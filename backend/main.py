@@ -18,7 +18,6 @@ database.Base.metadata.create_all(bind=database.engine)
 
 import routers.interview
 import routers.video_interview
-import routers.auth
 import routers.trends
 import routers.ml
 import routers.dsa
@@ -41,7 +40,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(routers.auth.router)
 app.include_router(routers.interview.router)
 app.include_router(routers.video_interview.router)
 app.include_router(routers.dsa.router)
