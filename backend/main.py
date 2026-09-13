@@ -19,10 +19,13 @@ database.Base.metadata.create_all(bind=database.engine)
 import routers.interview
 import routers.video_interview
 import routers.auth
+import routers.trends
+import routers.ml
+import routers.dsa
 
 app = FastAPI(title="AI Interview Simulator API")
 
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000,http://localhost:5174").split(",")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "super_secret_session_key")
 
 app.add_middleware(
@@ -41,12 +44,16 @@ app.add_middleware(
 app.include_router(routers.auth.router)
 app.include_router(routers.interview.router)
 app.include_router(routers.video_interview.router)
+app.include_router(routers.dsa.router)
+app.include_router(routers.trends.router)
+app.include_router(routers.ml.router)
 
 class InterviewSetupRequest(BaseModel):
     role: str = Field(..., max_length=100)
     interview_type: str = Field(..., max_length=50)
     difficulty: str = Field(..., max_length=50)
     topic: Optional[str] = Field(None, max_length=200)
+    company: Optional[str] = Field("Generic", max_length=100)
 
 class InterviewSetupResponse(BaseModel):
     session_id: int
@@ -64,10 +71,10 @@ class CodeEvaluationRequest(BaseModel):
     code: str = Field(..., max_length=20000)
 
 @app.post("/api/setup", response_model=InterviewSetupResponse)
-def setup_interview(request: InterviewSetupRequest, current_user: models.User = Depends(routers.auth.get_current_user), db: Session = Depends(database.get_db)):
+def setup_interview(request: InterviewSetupRequest, db: Session = Depends(database.get_db)):
     # Create session
     db_session = models.InterviewSession(
-        user_id=current_user.id,
+        user_id=None,
         role=request.role,
         interview_type=request.interview_type,
         difficulty=request.difficulty,
@@ -80,7 +87,7 @@ def setup_interview(request: InterviewSetupRequest, current_user: models.User = 
     # Generate questions using AI
     import services.ai_service as ai
     generated = ai.generate_interview_questions(
-        request.role, request.interview_type, request.difficulty, request.topic
+        request.role, request.interview_type, request.difficulty, request.topic, request.company
     )
     
     for q in generated:
@@ -124,9 +131,19 @@ async def analyze_resume_endpoint(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/dashboard/metrics")
-def get_dashboard_metrics(current_user: models.User = Depends(routers.auth.get_current_user), db: Session = Depends(database.get_db)):
-    sessions = db.query(models.InterviewSession).filter(models.InterviewSession.user_id == current_user.id).all()
+class DashboardMetricsRequest(BaseModel):
+    session_ids: List[int] = []
+
+@app.post("/api/dashboard/metrics")
+def get_dashboard_metrics(request: DashboardMetricsRequest, db: Session = Depends(database.get_db)):
+    if not request.session_ids:
+        return {
+            "total_sessions": 0,
+            "average_accuracy": 0,
+            "average_clarity": 0
+        }
+        
+    sessions = db.query(models.InterviewSession).filter(models.InterviewSession.id.in_(request.session_ids)).all()
     # Basic metrics
     total = len(sessions)
     session_ids = [s.id for s in sessions]

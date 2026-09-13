@@ -4,12 +4,20 @@
 
 @layer base {
   body {
-    @apply bg-slate-900 text-slate-100 antialiased;
+    @apply bg-neutral-950 text-slate-100 antialiased overflow-x-hidden;
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-slate-800/50 backdrop-blur-xl border border-white/10 shadow-xl;
+    @apply bg-neutral-900/50 backdrop-blur-xl border border-white/10 shadow-xl;
+  }
+  
+  .tech-grid {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(220, 38, 38, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(220, 38, 38, 0.05) 1px, transparent 1px);
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 100%);
   }
 }

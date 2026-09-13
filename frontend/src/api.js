@@ -2,12 +2,11 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
-const apiClient = axios.create({
+export const apiClient = axios.create({
     baseURL: API_URL,
-    timeout: 30000, // 30 seconds max timeout for AI generation
+    timeout: 30000,
 });
 
-// Add interceptor to attach token to outgoing requests
 apiClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('auth_token');
@@ -19,40 +18,40 @@ apiClient.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
-// Add interceptor to uniformly log or handle errors
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
         console.error("API Error: ", error?.response?.data || error.message);
-        if (error?.response?.status === 401 || error?.response?.status === 403) {
-            localStorage.removeItem('auth_token');
-            window.location.href = '/';
-        }
         return Promise.reject(error);
     }
 );
 
 export const getCurrentUser = async () => {
-    const API_DOMAIN = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
-    const response = await apiClient.get(`${API_DOMAIN}/auth/me`);
-    return response.data;
+    return {
+        id: "public",
+        name: "Anonymous User",
+        email: "public@simulator.local",
+        picture: ""
+    };
 };
 
 export const updateProfilePicture = async (base64Image) => {
-    const API_DOMAIN = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
-    const response = await apiClient.put(`${API_DOMAIN}/auth/me/picture`, {
-        picture: base64Image
-    });
-    return response.data;
+    return { message: "Auth disabled" };
 };
 
-export const setupInterview = async (role, type, difficulty, topic) => {
+export const setupInterview = async (role, type, difficulty, topic, company) => {
     const response = await apiClient.post('/setup', {
         role,
         interview_type: type,
         difficulty,
-        topic
+        topic,
+        company
     });
+    try {
+        const stored = JSON.parse(localStorage.getItem('my_sessions') || '[]');
+        stored.push(response.data.session_id);
+        localStorage.setItem('my_sessions', JSON.stringify(stored));
+    } catch(e) {}
     return response.data;
 };
 
@@ -76,7 +75,11 @@ export const evaluateCode = async (sessionId, questionId, code, language = 'pyth
 };
 
 export const getDashboardMetrics = async () => {
-    const response = await apiClient.get('/dashboard/metrics');
+    let stored = [];
+    try {
+        stored = JSON.parse(localStorage.getItem('my_sessions') || '[]');
+    } catch(e) {}
+    const response = await apiClient.post('/dashboard/metrics', { session_ids: stored });
     return response.data;
 };
 
@@ -97,5 +100,10 @@ export const sendVideoChatMessage = async (sessionId, messages) => {
         job_role: "Software Engineer",
         years_experience: 2
     });
+    return response.data;
+};
+
+export const getTrends = async (role) => {
+    const response = await apiClient.get('/trends/' + role);
     return response.data;
 };
