@@ -24,8 +24,19 @@ import routers.dsa
 
 app = FastAPI(title="AI Interview Simulator API")
 
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:3000,http://localhost:5174").split(",")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
 SESSION_SECRET = os.getenv("SESSION_SECRET", "super_secret_session_key")
+
+# Always ensure localhost variants are included for local dev
+DEFAULT_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:3000",
+]
+
+# Merge and deduplicate, filtering empty strings
+ALL_ORIGINS = list(set(DEFAULT_ORIGINS + [o.strip() for o in ALLOWED_ORIGINS if o.strip()]))
 
 app.add_middleware(
     SessionMiddleware,
@@ -34,7 +45,8 @@ app.add_middleware(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=ALL_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app",  # Accept ANY Vercel deployment URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
