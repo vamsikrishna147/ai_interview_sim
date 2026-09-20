@@ -4,7 +4,6 @@ load_dotenv()
 
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import List, Optional
@@ -25,7 +24,6 @@ import routers.dsa
 app = FastAPI(title="AI Interview Simulator API")
 
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
-SESSION_SECRET = os.getenv("SESSION_SECRET", "super_secret_session_key")
 
 # Always ensure localhost variants are included for local dev
 DEFAULT_ORIGINS = [
@@ -37,11 +35,6 @@ DEFAULT_ORIGINS = [
 
 # Merge and deduplicate, filtering empty strings
 ALL_ORIGINS = list(set(DEFAULT_ORIGINS + [o.strip() for o in ALLOWED_ORIGINS if o.strip()]))
-
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=SESSION_SECRET
-)
 
 app.add_middleware(
     CORSMiddleware,
