@@ -4,7 +4,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 export const apiClient = axios.create({
     baseURL: API_URL,
-    timeout: 30000,
+    timeout: 120000, // 120s: covers Render cold start (50s) + LangGraph 2-agent pipeline (~40s)
 });
 
 apiClient.interceptors.request.use(

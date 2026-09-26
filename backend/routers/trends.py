@@ -1,15 +1,14 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
 import services.trend_service as trend_service
 
 router = APIRouter()
 
-class TrendResponse(BaseModel):
-    trends: list[str]
-    opportunities: list[str]
-    latest_questions: list[str]
-
-@router.get("/api/trends/{role}", response_model=TrendResponse)
+@router.get("/api/trends/{role}")
 def get_trends(role: str):
     data = trend_service.query_latest_trends(role)
-    return data
+    # Guarantee all keys exist with defaults — prevents 422 when Gemini returns partial JSON
+    return {
+        "trends": data.get("trends", []),
+        "opportunities": data.get("opportunities", []),
+        "latest_questions": data.get("latest_questions", []),
+    }

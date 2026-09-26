@@ -51,6 +51,11 @@ app.include_router(routers.dsa.router)
 app.include_router(routers.trends.router)
 app.include_router(routers.ml.router)
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok", "service": "AI Interview Simulator"}
+
+
 class InterviewSetupRequest(BaseModel):
     role: str = Field(..., max_length=100)
     interview_type: str = Field(..., max_length=50)
