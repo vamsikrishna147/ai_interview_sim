@@ -1,8 +1,19 @@
 from typing import List, Dict
+import os
 import json
 from pydantic import BaseModel
+from google import genai
 from google.genai import types
-from .ai_service import client
+from dotenv import load_dotenv
+
+load_dotenv()
+
+try:
+    client = genai.Client()
+except Exception as e:
+    client = None
+    print(f"[ai_chat] Gemini client failed to init: {e}")
+
 
 class ChatMessage(BaseModel):
     role: str

@@ -1,6 +1,17 @@
-from .ai_service import client
-from google.genai import types
+import os
 import json
+from google import genai
+from google.genai import types
+from dotenv import load_dotenv
+
+load_dotenv()
+
+try:
+    client = genai.Client()
+except Exception as e:
+    client = None
+    print(f"[code_analysis] Gemini client failed to init: {e}")
+
 
 def analyze_code_solution(question: str, code: str, language: str = 'python'):
     if not client:
