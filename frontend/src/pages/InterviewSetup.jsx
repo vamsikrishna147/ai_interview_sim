@@ -10,11 +10,14 @@ export default function InterviewSetup() {
     const [topic, setTopic] = useState('');
     const [company, setCompany] = useState('Generic');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleSetup = async (e) => {
         e.preventDefault();
+        if (!role.trim()) { setError('Please enter a target role.'); return; }
         setLoading(true);
+        setError('');
         try {
             const response = await setupInterview(role, type, difficulty, topic, company);
             const sessionId = response.session_id;
@@ -26,6 +29,8 @@ export default function InterviewSetup() {
             }
         } catch (err) {
             console.error(err);
+            const msg = err?.response?.data?.detail || err?.message || 'Failed to create interview session. Backend may be cold-starting — please try again.';
+            setError(msg);
         } finally {
             setLoading(false);
         }
@@ -131,12 +136,23 @@ export default function InterviewSetup() {
                         </div>
                     </div>
 
+                    {error && (
+                        <div className="bg-red-900/40 border border-red-500/50 text-red-300 rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+                            <span className="text-red-400">⚠</span> {error}
+                        </div>
+                    )}
+
                     <button
                         type="submit"
                         disabled={loading}
                         className="w-full mt-8 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white rounded-xl py-4 font-bold text-lg transition-all shadow-lg shadow-red-600/25 hover:shadow-red-500/40 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                     >
-                        {loading ? <span><Loader2 className="w-5 h-5 animate-spin text-white inline-block mr-2" /> Initializing...</span> : 'Start Interview'}
+                        {loading ? (
+                            <span className="flex items-center gap-2">
+                                <Loader2 className="w-5 h-5 animate-spin text-white" />
+                                AI Agents Generating Questions...
+                            </span>
+                        ) : 'Start Interview'}
                     </button>
                 </form>
             </div>

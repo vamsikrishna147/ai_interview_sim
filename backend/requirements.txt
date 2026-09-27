@@ -14,5 +14,7 @@ langchain-core==1.6.5
 pdfplumber
 joblib
 scikit-learn
+psycopg2-binary
+
 
 

@@ -88,9 +88,10 @@ export default function LiveInterview() {
                 setCurrentIdx(nextIdx);
             }
         } else {
-            navigate(`/video/${sessionId}`);
+            navigate('/dashboard');
         }
     };
+
 
     const handlePrev = () => {
         setAnswer('');

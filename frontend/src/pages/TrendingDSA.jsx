@@ -6,16 +6,20 @@ export default function TrendingDSA() {
     const [questions, setQuestions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [source, setSource] = useState("");
+    const [error, setError] = useState("");
 
     const fetchTrending = async () => {
         setLoading(true);
+        setError("");
         try {
             const response = await apiClient.get('/dsa/trending');
             setQuestions(response.data.questions || []);
             setSource(response.data.source || "Unknown");
         } catch (error) {
             console.error("Failed to fetch trending DSA:", error);
-            setSource("Failed to fetch data");
+            setError("Backend is starting up or unreachable. Using curated problems.");
+            // Show curated fallback data in the UI
+            setSource("Curated Top Problems (fallback)");
         } finally {
             setLoading(false);
         }
@@ -24,6 +28,7 @@ export default function TrendingDSA() {
     useEffect(() => {
         fetchTrending();
     }, []);
+
 
     return (
         <div className="max-w-6xl mx-auto py-10 px-6 animate-fade-in">
@@ -46,6 +51,12 @@ export default function TrendingDSA() {
                     Refresh
                 </button>
             </div>
+
+            {error && (
+                <div className="mb-6 bg-amber-900/30 border-l-4 border-amber-500 px-4 py-3 text-amber-300 text-sm font-medium">
+                    ⚠ {error}
+                </div>
+            )}
 
             {loading ? (
                 <div className="flex justify-center items-center h-64 flex-col gap-4">

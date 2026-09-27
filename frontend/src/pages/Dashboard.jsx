@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { getDashboardMetrics, getCurrentUser } from '../api';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Target, Zap, Trophy, Loader2 } from 'lucide-react';
@@ -31,7 +31,7 @@ export default function Dashboard() {
     }
 
     if (!metrics || !user) {
-        return <div className="text-center mt-20 text-red-500 font-bold tracking-wide text-xl uppercase">SYSTEM OFFLINE. FAILED TO LOAD DATABASE.</div>
+        return <div className="text-center mt-20 text-red-500 font-bold tracking-wide text-xl uppercase">Could not load dashboard data. Please refresh.</div>
     }
 
     const historyData = [
@@ -100,9 +100,9 @@ export default function Dashboard() {
                     <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={[
-                                { skill: 'Technical', score: metrics.average_accuracy || 8.0 },
-                                { skill: 'Communication', score: metrics.average_clarity || 7.5 },
-                                { skill: 'Problem Solving', score: (metrics.average_accuracy + metrics.average_clarity) / 2 || 7.8 }
+                                { skill: 'Technical', score: safeAvgAcc || 8.0 },
+                                { skill: 'Communication', score: safeAvgClr || 7.5 },
+                                { skill: 'Problem Solving', score: (safeAvgAcc + safeAvgClr) / 2 || 7.8 }
                             ]}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                                 <XAxis dataKey="skill" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} axisLine={false} tickLine={false} />
@@ -138,3 +138,5 @@ function StatCard({ title, value, icon, suffix, trend }) {
         </div>
     )
 }
+
+
